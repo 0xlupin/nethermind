@@ -290,9 +290,6 @@ internal static partial class EvmInstructions
             outputOffset = 0;
         }
 
-        // Initialize child frame gas state with policy-specific data (e.g., multigas)
-        GasState childGasState = TGasPolicy.InitializeChildFrame(gasLimitUl);
-
         // Rent a new call frame for executing the call.
         vm.ReturnData = EvmState.RentFrame(
             gasAvailable: gasLimitUl,
@@ -303,8 +300,7 @@ internal static partial class EvmInstructions
             isCreateOnPreExistingAccount: false,
             env: in callEnv,
             stateForAccessLists: in vm.EvmState.AccessTracker,
-            in snapshot,
-            frameGasState: childGasState);
+            in snapshot);
 
         return EvmExceptionType.None;
 
