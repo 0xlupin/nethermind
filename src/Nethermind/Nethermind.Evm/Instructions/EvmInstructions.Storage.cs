@@ -7,6 +7,7 @@ using Nethermind.Core;
 using Nethermind.Core.Extensions;
 using Nethermind.Core.Specs;
 using Nethermind.Evm.Gas;
+using static Nethermind.Evm.VirtualMachineStatics;
 
 namespace Nethermind.Evm;
 
@@ -31,8 +32,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> indicating the result of the operation.</returns>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionTLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionTLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -82,8 +82,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> indicating success or failure.</returns>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionTStore<TGasPolicy>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack,
-        ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionTStore<TGasPolicy>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
         // Increment the opcode metric for TSTORE.
@@ -107,8 +106,7 @@ internal static partial class EvmInstructions
         Span<byte> bytes = stack.PopWord256();
 
         // Store either the actual value (if non-zero) or a predefined zero constant.
-        vm.WorldState.SetTransientState(in storageCell,
-            !bytes.IsZero() ? bytes.ToArray() : VirtualMachine<TGasPolicy>.BytesZero32);
+        vm.WorldState.SetTransientState(in storageCell, !bytes.IsZero() ? bytes.ToArray() : BytesZero32);
 
         // If storage tracing is enabled, retrieve the current stored value and log the operation.
         if (vm.TxTracer.IsTracingStorage)
@@ -142,8 +140,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> result.</returns>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionMStore<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionMStore<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -158,8 +155,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update the memory cost for a 32-byte store; if insufficient gas, signal out-of-gas.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in VirtualMachine<TGasPolicy>.BigInt32,
-                Instruction.MSTORE)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in VirtualMachine<TGasPolicy>.BigInt32, Instruction.MSTORE)) ||
         !vmState.Memory.TrySaveWord(in result, bytes))
         {
             goto OutOfGas;
@@ -191,8 +187,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> result.</returns>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionMStore8<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionMStore8<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -238,8 +233,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> result.</returns>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionMLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionMLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -251,8 +245,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update memory cost for a 32-byte load.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result,
-                in VirtualMachine<TGasPolicy>.BigInt32, Instruction.MLOAD)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in VirtualMachine<TGasPolicy>.BigInt32, Instruction.MLOAD)) ||
         !vmState.Memory.TryLoadSpan(in result, out Span<byte> bytes))
         {
             goto OutOfGas;
@@ -287,8 +280,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> result.</returns>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionMCopy<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionMCopy<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -299,17 +291,13 @@ internal static partial class EvmInstructions
         if (!stack.PopUInt256(out UInt256 a) || !stack.PopUInt256(out UInt256 b) || !stack.PopUInt256(out UInt256 c)) goto StackUnderflow;
 
         // Calculate additional gas cost based on the length (using a division rounding-up method) and deduct the total cost.
-        TGasPolicy.ConsumeGas(ref gasState,
-            GasCostOf.VeryLow + GasCostOf.VeryLow * EvmCalculations.Div32Ceiling(c, out var outOfGas),
-            Instruction.MCOPY);
+        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow + GasCostOf.VeryLow * EvmCalculations.Div32Ceiling(c, out var outOfGas), Instruction.MCOPY);
         if (outOfGas) goto OutOfGas;
-
 
         EvmState vmState = vm.EvmState;
 
         // Update memory cost for the destination area (largest offset among source and destination) over the specified length.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, UInt256.Max(b, a), c,
-                Instruction.MCOPY)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, UInt256.Max(b, a), c, Instruction.MCOPY)) ||
             !vmState.Memory.TryLoadSpan(in b, c, out Span<byte> bytes))
         {
             goto OutOfGas;
@@ -350,8 +338,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> indicating the outcome.</returns>
     [SkipLocalsInit]
-    internal static EvmExceptionType InstructionSStoreUnmetered<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    internal static EvmExceptionType InstructionSStoreUnmetered<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -374,14 +361,13 @@ internal static partial class EvmInstructions
 
         // Determine if the new value is effectively zero and normalize non-zero values by stripping leading zeros.
         bool newIsZero = bytes.IsZero();
-        bytes = !newIsZero ? bytes.WithoutLeadingZeros() : VirtualMachine<TGasPolicy>.BytesZero;
+        bytes = !newIsZero ? bytes.WithoutLeadingZeros() : BytesZero;
 
         // Construct the storage cell for the executing account.
         StorageCell storageCell = new(vmState.Env.ExecutingAccount, in result);
 
         // Charge gas based on whether this is a cold or warm storage access.
-        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell,
-                StorageAccessType.SSTORE, spec, Instruction.SSTORE))
+        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell, StorageAccessType.SSTORE, spec, Instruction.SSTORE))
             goto OutOfGas;
 
         // Retrieve the current value from persistent storage.
@@ -407,15 +393,14 @@ internal static partial class EvmInstructions
         // When setting a non-zero value over an existing zero, apply the difference in gas costs.
         else if (currentIsZero)
         {
-            if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.SSet - GasCostOf.SReset,
-                    Instruction.SSTORE))
+            if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.SSet - GasCostOf.SReset, Instruction.SSTORE))
                 goto OutOfGas;
         }
 
         // Only update storage if the new value differs from the current value.
         if (!newSameAsCurrent)
         {
-            vm.WorldState.Set(in storageCell, newIsZero ? VirtualMachine<TGasPolicy>.BytesZero : bytes.ToArray());
+            vm.WorldState.Set(in storageCell, newIsZero ? BytesZero : bytes.ToArray());
         }
 
         // Report storage changes for tracing if enabled.
@@ -455,8 +440,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter.</param>
     /// <returns>An <see cref="EvmExceptionType"/> indicating the outcome.</returns>
     [SkipLocalsInit]
-    internal static EvmExceptionType InstructionSStoreMetered<TGasPolicy, TTracingInst, TUseNetGasStipendFix>(
-        VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    internal static EvmExceptionType InstructionSStoreMetered<TGasPolicy, TTracingInst, TUseNetGasStipendFix>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
         where TUseNetGasStipendFix : struct, IFlag
@@ -485,14 +469,13 @@ internal static partial class EvmInstructions
 
         // Determine if the new value is effectively zero and normalize non-zero values by stripping leading zeros.
         bool newIsZero = bytes.IsZero();
-        bytes = !newIsZero ? bytes.WithoutLeadingZeros() : VirtualMachine<TGasPolicy>.BytesZero;
+        bytes = !newIsZero ? bytes.WithoutLeadingZeros() : BytesZero;
 
         // Construct the storage cell for the executing account.
         StorageCell storageCell = new(vmState.Env.ExecutingAccount, in result);
 
         // Charge gas based on whether this is a cold or warm storage access.
-        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell,
-                StorageAccessType.SSTORE, spec, Instruction.SSTORE))
+        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell, StorageAccessType.SSTORE, spec, Instruction.SSTORE))
             goto OutOfGas;
 
         // Retrieve the current value from persistent storage.
@@ -507,8 +490,7 @@ internal static partial class EvmInstructions
 
         if (newSameAsCurrent)
         {
-            if (!EvmCalculations.UpdateGas(ref gasState, spec.GetNetMeteredSStoreCost(),
-                    Instruction.SSTORE))
+            if (!EvmCalculations.UpdateGas(ref gasState, spec.GetNetMeteredSStoreCost(), Instruction.SSTORE))
                 goto OutOfGas;
         }
         else
@@ -527,8 +509,7 @@ internal static partial class EvmInstructions
                 }
                 else
                 {
-                    if (!EvmCalculations.UpdateGas(ref gasState, spec.GetSStoreResetCost(),
-                            Instruction.SSTORE))
+                    if (!EvmCalculations.UpdateGas(ref gasState, spec.GetSStoreResetCost(), Instruction.SSTORE))
                         goto OutOfGas;
 
                     if (newIsZero)
@@ -581,7 +562,7 @@ internal static partial class EvmInstructions
         // Only update storage if the new value differs from the current value.
         if (!newSameAsCurrent)
         {
-            vm.WorldState.Set(in storageCell, newIsZero ? VirtualMachine<TGasPolicy>.BytesZero : bytes.ToArray());
+            vm.WorldState.Set(in storageCell, newIsZero ? BytesZero : bytes.ToArray());
         }
 
         // Report storage changes for tracing if enabled.
@@ -606,11 +587,10 @@ internal static partial class EvmInstructions
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void TraceSstore<TGasPolicy>(VirtualMachine<TGasPolicy> vm, bool newIsZero,
-        in StorageCell storageCell, ReadOnlySpan<byte> bytes)
+    private static void TraceSstore<TGasPolicy>(VirtualMachine<TGasPolicy> vm, bool newIsZero, in StorageCell storageCell, ReadOnlySpan<byte> bytes)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
-        ReadOnlySpan<byte> valueToStore = newIsZero ? VirtualMachine<TGasPolicy>.BytesZero.AsSpan() : bytes;
+        ReadOnlySpan<byte> valueToStore = newIsZero ? BytesZero.AsSpan() : bytes;
         byte[] storageBytes = new byte[32]; // Allocated on the heap to avoid stack allocation.
         storageCell.Index.ToBigEndian(storageBytes);
         vm.TxTracer.ReportStorageChange(storageBytes, valueToStore);
@@ -629,8 +609,7 @@ internal static partial class EvmInstructions
     /// <param name="programCounter">The program counter (unused in this instruction).</param>
     /// <returns>An <see cref="EvmExceptionType"/> indicating the result of the operation.</returns>
     [SkipLocalsInit]
-    internal static EvmExceptionType InstructionSLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    internal static EvmExceptionType InstructionSLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -650,9 +629,11 @@ internal static partial class EvmInstructions
         StorageCell storageCell = new(executingAccount, in result);
 
         // Charge additional gas based on whether the storage cell is hot or cold.
-        if (!EvmCalculations.ChargeStorageAccessGas<TGasPolicy>(ref gasState, vm, in storageCell,
-                StorageAccessType.SLOAD, spec, Instruction.SLOAD))
+        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell, StorageAccessType.SLOAD, spec,
+                Instruction.SLOAD))
+        {
             goto OutOfGas;
+        }
 
         // Retrieve the persistent storage value and push it onto the stack.
         ReadOnlySpan<byte> value = vm.WorldState.Get(in storageCell);
@@ -678,8 +659,7 @@ internal static partial class EvmInstructions
     /// zero-padding if necessary.
     /// </summary>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionCallDataLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionCallDataLoad<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {

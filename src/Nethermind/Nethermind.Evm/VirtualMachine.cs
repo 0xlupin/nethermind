@@ -22,6 +22,7 @@ using Nethermind.Logging;
 using Nethermind.Evm.State;
 
 using static Nethermind.Evm.EvmObjectFormat.EofValidator;
+using static Nethermind.Evm.VirtualMachineStatics;
 
 #if DEBUG
 using Nethermind.Evm.Tracing.Debugger;
@@ -85,20 +86,6 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
     where TGasPolicy : struct, IGasPolicy<TGasPolicy>
 {
     public const int MaxCallDepth = Eof1.RETURN_STACK_MAX_HEIGHT;
-
-    // Static field references from VirtualMachineStatics to avoid duplication in generic type
-    internal static ref readonly UInt256 P255 => ref VirtualMachineStatics.P255;
-    internal static ref readonly UInt256 BigInt256 => ref VirtualMachineStatics.BigInt256;
-    internal static ref readonly UInt256 BigInt32 => ref VirtualMachineStatics.BigInt32;
-    internal static byte[] EofHash256 => VirtualMachineStatics.EofHash256;
-    internal static byte[] BytesZero => VirtualMachineStatics.BytesZero;
-    internal static byte[] BytesZero32 => VirtualMachineStatics.BytesZero32;
-    internal static byte[] BytesMax32 => VirtualMachineStatics.BytesMax32;
-
-    internal static PrecompileExecutionFailureException PrecompileExecutionFailureException =>
-        VirtualMachineStatics.PrecompileExecutionFailureException;
-
-    internal static OutOfGasException PrecompileOutOfGasException => VirtualMachineStatics.PrecompileOutOfGasException;
 
     private readonly ValueHash256 _chainId = ((UInt256)specProvider.ChainId).ToValueHash();
 
@@ -830,7 +817,7 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
             // If running a precompile on a top-level call frame, and it fails, assign a general execution failure.
             if (currentState.IsPrecompile && currentState.IsTopLevel)
             {
-                failure = PrecompileExecutionFailureException;
+                failure = VirtualMachineStatics.PrecompileExecutionFailureException;
                 goto Failure;
             }
 
@@ -1188,11 +1175,9 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
         // - OffFlag is used when cancelation is not needed.
         // - OnFlag is used when cancelation is enabled.
         // This leverages the compile-time evaluation of TTracingInst to optimize away runtime checks.
-        return _txTracer.IsCancelable switch
-        {
-            false => RunByteCode<TTracingInst, OffFlag>(ref stack, gasState),
-            true => RunByteCode<TTracingInst, OnFlag>(ref stack, gasState),
-        };
+        if (_txTracer.IsCancelable)
+            return RunByteCode<TTracingInst, OnFlag>(ref stack, ref gasState);
+        return RunByteCode<TTracingInst, OffFlag>(ref stack, ref gasState);
 
     Empty:
         // Return an empty CallResult if there is no machine code to execute.
@@ -1232,7 +1217,7 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
     [SkipLocalsInit]
     protected virtual unsafe CallResult RunByteCode<TTracingInst, TCancelable>(
         scoped ref EvmStack stack,
-        in GasState<TGasPolicy> gasState)
+        scoped ref GasState<TGasPolicy> gasState)
         where TTracingInst : struct, IFlag
         where TCancelable : struct, IFlag
     {
@@ -1282,8 +1267,7 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
 
                 // If tracing is enabled, start an instruction trace.
                 if (TTracingInst.IsActive)
-                    StartInstructionTrace(instruction, TGasPolicy.GetRemainingGas(in gasState), programCounter,
-                        in stack);
+                    StartInstructionTrace(instruction, TGasPolicy.GetRemainingGas(in gasState), programCounter, in stack);
 
                 // Advance the program counter to point to the next instruction.
                 programCounter++;

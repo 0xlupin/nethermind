@@ -142,8 +142,7 @@ internal static partial class EvmInstructions
             goto OutOfGas;
 
         // Update memory gas cost based on the required memory expansion for the init code.
-        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in memoryPositionOfInitCode, in initCodeLength,
-                instruction))
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in memoryPositionOfInitCode, in initCodeLength, instruction))
             goto OutOfGas;
 
         // Verify call depth does not exceed the maximum allowed. If exceeded, return early with empty data.

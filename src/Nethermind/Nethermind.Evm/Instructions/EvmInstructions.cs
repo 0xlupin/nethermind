@@ -11,6 +11,7 @@ using Nethermind.Evm.Gas;
 namespace Nethermind.Evm;
 
 using unsafe OpCode = delegate*<VirtualMachine, ref EvmStack, ref long, ref int, EvmExceptionType>;
+
 internal static unsafe partial class EvmInstructions
 {
     /// <summary>
@@ -48,7 +49,7 @@ internal static unsafe partial class EvmInstructions
         lookup[(int)Instruction.ADDMOD] = &InstructionMath3Param<TGasPolicy, OpAddMod, TTracingInst>;
         lookup[(int)Instruction.MULMOD] = &InstructionMath3Param<TGasPolicy, OpMulMod, TTracingInst>;
         lookup[(int)Instruction.EXP] = &InstructionExp<TGasPolicy, TTracingInst>;
-        lookup[(int)Instruction.SIGNEXTEND] = &InstructionSignExtend<TGasPolicy, TTracingInst>;
+        lookup[(int)Instruction.SIGNEXTEND] = &InstructionSignExtend<TGasPolicy>;
 
         // Comparison and bitwise opcodes.
         lookup[(int)Instruction.LT] = &InstructionMath2Param<TGasPolicy, OpLt, TTracingInst>;

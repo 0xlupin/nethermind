@@ -136,8 +136,7 @@ internal static partial class EvmInstructions
 
         // Charge gas for accessing the account's code (including delegation logic if applicable).
         Instruction instruction = TOpCall.ExecutionType.ToInstruction();
-        if (!EvmCalculations.ChargeAccountAccessGasWithDelegation(ref gasState, vm, codeSource, instruction))
-            goto OutOfGas;
+        if (!EvmCalculations.ChargeAccountAccessGasWithDelegation(ref gasState, vm, codeSource, instruction)) goto OutOfGas;
 
         // For non-delegate calls, the transfer value is the call value.
         UInt256 transferValue = typeof(TOpCall) == typeof(OpDelegateCall) ? UInt256.Zero : callValue;
@@ -185,8 +184,7 @@ internal static partial class EvmInstructions
         if (spec.IsEip7907Enabled)
         {
             uint excessContractSize = (uint)Math.Max(0, codeInfo.CodeSpan.Length - CodeSizeConstants.MaxCodeSizeEip170);
-            if (excessContractSize > 0 && !ChargeForLargeContractAccess(excessContractSize, codeSource,
-                    in vm.EvmState.AccessTracker, ref gasState, instruction))
+            if (excessContractSize > 0 && !ChargeForLargeContractAccess(excessContractSize, codeSource, in vm.EvmState.AccessTracker, ref gasState, instruction))
                 goto OutOfGas;
         }
 
@@ -295,8 +293,7 @@ internal static partial class EvmInstructions
 
         // Fast-call path for non-contract calls:
         // Directly credit the target account and avoid constructing a full call frame.
-        static EvmExceptionType FastCall(VirtualMachine<TGasPolicy> vm, IReleaseSpec spec, in UInt256 transferValue,
-            Address target)
+        static EvmExceptionType FastCall(VirtualMachine<TGasPolicy> vm, IReleaseSpec spec, in UInt256 transferValue, Address target)
         {
             IWorldState state = vm.WorldState;
             state.AddToBalanceAndCreateIfNotExists(target, transferValue, spec);
@@ -313,19 +310,13 @@ internal static partial class EvmInstructions
         return EvmExceptionType.OutOfGas;
     }
 
-    private static bool ChargeForLargeContractAccess<TGasPolicy>(
-        uint excessContractSize,
-        Address codeAddress,
-        in StackAccessTracker accessTracer,
-        ref GasState<TGasPolicy> gasState,
-        Instruction instruction)
+    private static bool ChargeForLargeContractAccess<TGasPolicy>(uint excessContractSize, Address codeAddress, in StackAccessTracker accessTracer, ref GasState<TGasPolicy> gasState, Instruction instruction)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
         if (accessTracer.WarmUpLargeContract(codeAddress))
         {
             long largeContractCost = GasCostOf.InitCodeWord * EvmCalculations.Div32Ceiling(excessContractSize, out bool outOfGas);
-            if (outOfGas || !EvmCalculations.UpdateGas(ref gasState, largeContractCost, instruction))
-                return false;
+            if (outOfGas || !EvmCalculations.UpdateGas(ref gasState, largeContractCost, instruction)) return false;
         }
 
         return true;

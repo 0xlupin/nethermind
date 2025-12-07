@@ -19,8 +19,7 @@ internal static partial class EvmInstructions
     /// and pushes the resulting 256-bit hash onto the stack.
     /// </summary>
     [SkipLocalsInit]
-    public static EvmExceptionType InstructionKeccak256<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm,
-        ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
+    public static EvmExceptionType InstructionKeccak256<TGasPolicy, TTracingInst>(VirtualMachine<TGasPolicy> vm, ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
@@ -29,12 +28,9 @@ internal static partial class EvmInstructions
             goto StackUnderflow;
 
         // Deduct gas: base cost plus additional cost per 32-byte word.
-        TGasPolicy.ConsumeGas(ref gasState,
-            GasCostOf.Sha3 + GasCostOf.Sha3Word * EvmCalculations.Div32Ceiling(in b, out bool outOfGas),
-            Instruction.KECCAK256);
+        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.Sha3 + GasCostOf.Sha3Word * EvmCalculations.Div32Ceiling(in b, out bool outOfGas), Instruction.KECCAK256);
         if (outOfGas)
             goto OutOfGas;
-
 
         EvmState vmState = vm.EvmState;
         // Charge gas for any required memory expansion.

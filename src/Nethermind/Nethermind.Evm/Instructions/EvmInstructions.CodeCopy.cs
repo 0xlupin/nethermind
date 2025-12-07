@@ -68,9 +68,7 @@ internal static partial class EvmInstructions
 
         // Deduct gas for the operation plus the cost for memory expansion.
         // Gas cost is calculated as a fixed "VeryLow" cost plus a per-32-bytes cost.
-        TGasPolicy.ConsumeGas(ref gasState,
-            GasCostOf.VeryLow + GasCostOf.Memory * EvmCalculations.Div32Ceiling(in result, out var outOfGas),
-            Instruction.EXTCODECOPY);
+        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow + GasCostOf.Memory * EvmCalculations.Div32Ceiling(in result, out var outOfGas), Instruction.EXTCODECOPY);
         if (outOfGas) goto OutOfGas;
 
         // Only perform the copy if length (result) is non-zero.
@@ -156,9 +154,7 @@ internal static partial class EvmInstructions
             goto StackUnderflow;
 
         // Deduct gas cost: cost for external code access plus memory expansion cost.
-        TGasPolicy.ConsumeGas(ref gasState,
-            spec.GetExtCodeCost() + GasCostOf.Memory * EvmCalculations.Div32Ceiling(in result, out var outOfGas),
-            Instruction.EXTCODECOPY);
+        TGasPolicy.ConsumeGas(ref gasState, spec.GetExtCodeCost() + GasCostOf.Memory * EvmCalculations.Div32Ceiling(in result, out var outOfGas), Instruction.EXTCODECOPY);
         if (outOfGas) goto OutOfGas;
 
         // Charge gas for account access (considering hot/cold storage costs).
@@ -277,7 +273,7 @@ internal static partial class EvmInstructions
                 vm.OpCodeCount++;
                 programCounter++;
                 // Deduct very-low gas cost for the next operation (ISZERO, GT, or EQ).
-                TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, Instruction.ISZERO);
+                TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, nextInstruction);
 
                 // Determine if the account is a contract by checking the loaded CodeHash.
                 bool isCodeLengthNotZero = vm.WorldState.IsContract(address);
