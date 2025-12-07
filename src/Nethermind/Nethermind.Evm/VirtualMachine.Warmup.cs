@@ -147,8 +147,7 @@ public unsafe partial class VirtualMachine<TGasPolicy>
         codeToDeploy.Add((byte)Instruction.POP);
     }
 
-    private static void RunOpCodes<TTracingInst>(VirtualMachine<TGasPolicy> vm, IWorldState state, EvmState evmState,
-        IReleaseSpec spec)
+    private static void RunOpCodes<TTracingInst>(VirtualMachine<TGasPolicy> vm, IWorldState state, EvmState evmState, IReleaseSpec spec)
         where TTracingInst : struct, IFlag
     {
         const int WarmUpIterations = 40;

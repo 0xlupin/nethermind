@@ -207,6 +207,7 @@ internal static partial class EvmInstructions
         {
             goto OutOfGas;
         }
+
         // Report the memory change if tracing is active.
         if (TTracingInst.IsActive)
             vm.TxTracer.ReportMemoryChange(result, data);
@@ -302,7 +303,6 @@ internal static partial class EvmInstructions
         {
             goto OutOfGas;
         }
-
 
         // Report the memory change at the source if tracing is active.
         if (TTracingInst.IsActive)
@@ -629,8 +629,7 @@ internal static partial class EvmInstructions
         StorageCell storageCell = new(executingAccount, in result);
 
         // Charge additional gas based on whether the storage cell is hot or cold.
-        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell, StorageAccessType.SLOAD, spec,
-                Instruction.SLOAD))
+        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell, StorageAccessType.SLOAD, spec, Instruction.SLOAD))
         {
             goto OutOfGas;
         }

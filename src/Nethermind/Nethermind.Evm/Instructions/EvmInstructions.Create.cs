@@ -10,6 +10,7 @@ using Nethermind.Evm.EvmObjectFormat;
 using Nethermind.Evm.Gas;
 using Nethermind.Int256;
 using Nethermind.Evm.State;
+using static Nethermind.Evm.VirtualMachineStatics;
 
 namespace Nethermind.Evm;
 
@@ -147,7 +148,7 @@ internal static partial class EvmInstructions
 
         // Verify call depth does not exceed the maximum allowed. If exceeded, return early with empty data.
         // This guard ensures we do not create nested contract calls beyond EVM limits.
-        if (env.CallDepth >= VirtualMachine<TGasPolicy>.MaxCallDepth)
+        if (env.CallDepth >= MaxCallDepth)
         {
             vm.ReturnDataBuffer = Array.Empty<byte>();
             stack.PushZero<TTracingInst>();
@@ -178,7 +179,7 @@ internal static partial class EvmInstructions
         }
 
         // Get remaining gas for the create operation.
-        var gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
+        long gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
 
         // End tracing if enabled, prior to switching to the new call frame.
         if (TTracingInst.IsActive)

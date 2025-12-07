@@ -12,6 +12,7 @@ using Nethermind.Evm.EvmObjectFormat.Handlers;
 using Nethermind.Evm.Gas;
 using Nethermind.Evm.Tracing;
 using Nethermind.Evm.State;
+using static Nethermind.Evm.VirtualMachineStatics;
 
 namespace Nethermind.Evm;
 
@@ -688,7 +689,7 @@ internal static partial class EvmInstructions
         IWorldState state = vm.WorldState;
         // 7. Check call depth and caller's balance before proceeding with creation.
         UInt256 balance = state.GetBalance(env.ExecutingAccount);
-        if (env.CallDepth >= VirtualMachine<TGasPolicy>.MaxCallDepth || value > balance)
+        if (env.CallDepth >= MaxCallDepth || value > balance)
         {
             // In case of failure, do not consume additional gas.
             vm.ReturnDataBuffer = Array.Empty<byte>();
@@ -697,7 +698,7 @@ internal static partial class EvmInstructions
         }
 
         // 9. Determine gas available for the new contract execution, applying the 63/64 rule if enabled.
-        var gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
+        long gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
         long callGas = spec.Use63Over64Rule ? gasAvailable - gasAvailable / 64L : gasAvailable;
         if (!EvmCalculations.UpdateGas(ref gasState, callGas, Instruction.EOFCREATE))
             goto OutOfGas;
@@ -807,7 +808,7 @@ internal static partial class EvmInstructions
         byte sectionIdx = codeInfo.CodeSection.Span[programCounter++];
         // Retrieve the deployment code using the container section offset.
         ReadOnlyMemory<byte> deployCode = codeInfo.ContainerSection[(Range)codeInfo.ContainerSectionOffset(sectionIdx)];
-        EofCodeInfo deployCodeInfo = (EofCodeInfo)CodeInfoFactory.CreateCodeInfo(deployCode, spec);
+        EofCodeInfo deployCodeInfo = (EofCodeInfo)CodeInfoFactory.CreateCodeInfo(deployCode, spec, ValidationStrategy.ExtractHeader);
 
         // Pop memory offset and size for the return data.
         stack.PopUInt256(out UInt256 a);
@@ -964,13 +965,13 @@ internal static partial class EvmInstructions
         }
 
         // 9. Compute the gas available to the callee after reserving a minimum.
-        var gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
+        long gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
         long callGas = gasAvailable - Math.Max(gasAvailable / 64, MIN_RETAINED_GAS);
 
         // 10. Check that the call gas is sufficient, the caller has enough balance, and the call depth is within limits.
         if (callGas < GasCostOf.CallStipend ||
             (!transferValue.IsZero && state.GetBalance(env.ExecutingAccount) < transferValue) ||
-            env.CallDepth >= VirtualMachine<TGasPolicy>.MaxCallDepth)
+            env.CallDepth >= MaxCallDepth)
         {
             vm.ReturnData = null;
             vm.ReturnDataBuffer = Array.Empty<byte>();

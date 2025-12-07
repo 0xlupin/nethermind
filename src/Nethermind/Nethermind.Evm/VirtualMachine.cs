@@ -39,6 +39,8 @@ using Int256;
 /// </summary>
 internal static class VirtualMachineStatics
 {
+    public const int MaxCallDepth = Eof1.RETURN_STACK_MAX_HEIGHT;
+
     public static readonly UInt256 P255Int = (UInt256)BigInteger.Pow(2, 255);
     public static readonly byte[] EofHash256 = KeccakHash.ComputeHashBytes(EvmObjectFormat.EofValidator.MAGIC);
     public static ref readonly UInt256 P255 => ref P255Int;
@@ -85,8 +87,6 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
     ILogManager? logManager) : IVirtualMachine
     where TGasPolicy : struct, IGasPolicy<TGasPolicy>
 {
-    public const int MaxCallDepth = Eof1.RETURN_STACK_MAX_HEIGHT;
-
     private readonly ValueHash256 _chainId = ((UInt256)specProvider.ChainId).ToValueHash();
 
     private readonly IBlockhashProvider _blockHashProvider = blockHashProvider ?? throw new ArgumentNullException(nameof(blockHashProvider));
@@ -1175,9 +1175,11 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
         // - OffFlag is used when cancelation is not needed.
         // - OnFlag is used when cancelation is enabled.
         // This leverages the compile-time evaluation of TTracingInst to optimize away runtime checks.
-        if (_txTracer.IsCancelable)
-            return RunByteCode<TTracingInst, OnFlag>(ref stack, ref gasState);
-        return RunByteCode<TTracingInst, OffFlag>(ref stack, ref gasState);
+        return _txTracer.IsCancelable switch
+        {
+            false => RunByteCode<TTracingInst, OffFlag>(ref stack, ref gasState),
+            true => RunByteCode<TTracingInst, OnFlag>(ref stack, ref gasState),
+        };
 
     Empty:
         // Return an empty CallResult if there is no machine code to execute.
@@ -1406,8 +1408,7 @@ public unsafe partial class VirtualMachine<TGasPolicy>(
         state.FunctionIndex = SectionIndex;
     }
 
-    private static bool UpdateMemoryCost(EvmState vmState, ref GasState<TGasPolicy> gasState, in UInt256 position,
-        in UInt256 length)
+    private static bool UpdateMemoryCost(EvmState vmState, ref GasState<TGasPolicy> gasState, in UInt256 position, in UInt256 length)
     {
         long memoryCost = vmState.Memory.CalculateMemoryCost(in position, length, out bool outOfGas);
         if (outOfGas) return false;

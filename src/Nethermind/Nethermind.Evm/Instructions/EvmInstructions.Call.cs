@@ -9,6 +9,7 @@ using Nethermind.Evm.CodeAnalysis;
 using Nethermind.Evm.Gas;
 using Nethermind.Int256;
 using Nethermind.Evm.State;
+using static Nethermind.Evm.VirtualMachineStatics;
 
 namespace Nethermind.Evm;
 
@@ -212,7 +213,7 @@ internal static partial class EvmInstructions
         }
 
         // Check call depth and balance of the caller.
-        if (env.CallDepth >= VirtualMachine<TGasPolicy>.MaxCallDepth ||
+        if (env.CallDepth >= MaxCallDepth ||
             (!transferValue.IsZero && state.GetBalance(env.ExecutingAccount) < transferValue))
         {
             // If the call cannot proceed, return an empty response and push zero on the stack.

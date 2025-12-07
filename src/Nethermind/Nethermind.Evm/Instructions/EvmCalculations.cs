@@ -24,8 +24,7 @@ public static class EvmCalculations
     /// <param name="chargeForWarm">If true, charge even if the account is already warm.</param>
     /// <param name="instruction">The instruction being executed.</param>
     /// <returns>True if gas was successfully charged; otherwise false.</returns>
-    public static bool ChargeAccountAccessGasWithDelegation<TGasPolicy>(ref GasState<TGasPolicy> gasState,
-        VirtualMachine<TGasPolicy> vm, Address address, Instruction instruction, bool chargeForWarm = true)
+    public static bool ChargeAccountAccessGasWithDelegation<TGasPolicy>(ref GasState<TGasPolicy> gasState, VirtualMachine<TGasPolicy> vm, Address address, Instruction instruction, bool chargeForWarm = true)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
         IReleaseSpec spec = vm.Spec;
@@ -52,8 +51,7 @@ public static class EvmCalculations
     /// <param name="instruction">The instruction being executed.</param>
     /// <param name="chargeForWarm">If true, applies the warm read gas cost even if the account is warm.</param>
     /// <returns>True if the gas charge was successful; otherwise false.</returns>
-    public static bool ChargeAccountAccessGas<TGasPolicy>(ref GasState<TGasPolicy> gasState,
-        VirtualMachine<TGasPolicy> vm, Address address, Instruction instruction, bool chargeForWarm = true)
+    public static bool ChargeAccountAccessGas<TGasPolicy>(ref GasState<TGasPolicy> gasState, VirtualMachine<TGasPolicy> vm, Address address, Instruction instruction, bool chargeForWarm = true)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
         bool result = true;
@@ -145,8 +143,7 @@ public static class EvmCalculations
     /// <param name="instruction">The instruction being executed.</param>
     /// <returns><c>true</c> if sufficient gas was available and deducted; otherwise, <c>false</c>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool UpdateMemoryCost<TGasPolicy>(EvmState vmState, ref GasState<TGasPolicy> gasState,
-        in UInt256 position, in UInt256 length, Instruction instruction)
+    public static bool UpdateMemoryCost<TGasPolicy>(EvmState vmState, ref GasState<TGasPolicy> gasState, in UInt256 position, in UInt256 length, Instruction instruction)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
         // Calculate additional gas cost for any memory expansion.
