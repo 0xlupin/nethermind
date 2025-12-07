@@ -10,6 +10,7 @@ using Nethermind.Evm.Gas;
 [assembly: InternalsVisibleTo("Nethermind.Evm.Precompiles")]
 namespace Nethermind.Evm;
 
+using unsafe OpCode = delegate*<VirtualMachine, ref EvmStack, ref long, ref int, EvmExceptionType>;
 internal static unsafe partial class EvmInstructions
 {
     /// <summary>

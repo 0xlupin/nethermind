@@ -9,10 +9,10 @@ using System.Runtime.Intrinsics;
 using Nethermind.Core;
 using Nethermind.Core.Crypto;
 using Nethermind.Evm.Gas;
+using Nethermind.Int256;
 
 namespace Nethermind.Evm;
 
-using Int256;
 using Word = Vector256<byte>;
 using static Unsafe;
 
@@ -43,7 +43,7 @@ internal static partial class EvmInstructions
     /// Interface for series of items based operations.
     /// The <c>Count</c> property specifies the expected number of items.
     /// </summary>
-    public interface IOpCount
+    public interface IOpCount<TSelf> where TSelf : struct, IOpCount<TSelf>
     {
         /// <summary>
         /// The number of items expected.
@@ -67,27 +67,24 @@ internal static partial class EvmInstructions
             int usedFromCode = Math.Min(code.Length - programCounter, length);
             stack.PushLeftPaddedBytes<TTracingInst>(code.Slice(programCounter, usedFromCode), length);
         }
+
+        /// <summary>
+        /// Helper to get instruction by adding (Count - 1) to the base instruction.
+        /// </summary>
+        static virtual Instruction GetInstruction(Instruction baseInstruction)
+            => baseInstruction + (byte)(TSelf.Count - 1);
     }
-
-    /// <summary>
-    /// Helper to get instruction by adding (Count - 1) to the base instruction.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Instruction GetInstruction<TOpCount>(Instruction baseInstruction)
-        where TOpCount : IOpCount
-        => baseInstruction + (byte)(TOpCount.Count - 1);
-
     // Some push operations override the default Push method to handle fixed-size optimizations.
 
     /// <summary>
     /// 0 item operations.
     /// </summary>
-    public struct Op0 : IOpCount { public static int Count => 0; }
+    public struct Op0 : IOpCount<Op0> { public static int Count => 0; }
 
     /// <summary>
     /// 1 item operations.
     /// </summary>
-    public struct Op1 : IOpCount
+    public struct Op1 : IOpCount<Op1>
     {
         const int Size = sizeof(byte);
         public static int Count => Size;
@@ -119,7 +116,7 @@ internal static partial class EvmInstructions
     /// <summary>
     /// 2 item operations.
     /// </summary>
-    public struct Op2 : IOpCount { public static int Count => 2; }
+    public struct Op2 : IOpCount<Op2> { public static int Count => 2; }
 
     /// <summary>
     /// Push operation for two bytes.
@@ -207,12 +204,12 @@ internal static partial class EvmInstructions
     /// 3 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op3 : IOpCount { public static int Count => 3; }
+    public struct Op3 : IOpCount<Op3> { public static int Count => 3; }
 
     /// <summary>
     /// 4 item operations.
     /// </summary>
-    public struct Op4 : IOpCount
+    public struct Op4 : IOpCount<Op4>
     {
         const int Size = sizeof(uint);
         public static int Count => Size;
@@ -239,24 +236,24 @@ internal static partial class EvmInstructions
     /// 5 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op5 : IOpCount { public static int Count => 5; }
+    public struct Op5 : IOpCount<Op5> { public static int Count => 5; }
 
     /// <summary>
     /// 6 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op6 : IOpCount { public static int Count => 6; }
+    public struct Op6 : IOpCount<Op6> { public static int Count => 6; }
 
     /// <summary>
     /// 7 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op7 : IOpCount { public static int Count => 7; }
+    public struct Op7 : IOpCount<Op7> { public static int Count => 7; }
 
     /// <summary>
     /// 8 item operations.
     /// </summary>
-    public struct Op8 : IOpCount
+    public struct Op8 : IOpCount<Op8>
     {
         const int Size = sizeof(ulong);
         public static int Count => Size;
@@ -285,45 +282,45 @@ internal static partial class EvmInstructions
     /// 9 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op9 : IOpCount { public static int Count => 9; }
+    public struct Op9 : IOpCount<Op9> { public static int Count => 9; }
 
     /// <summary>
     /// 10 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op10 : IOpCount { public static int Count => 10; }
+    public struct Op10 : IOpCount<Op10> { public static int Count => 10; }
 
     /// <summary>
     /// 11 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op11 : IOpCount { public static int Count => 11; }
+    public struct Op11 : IOpCount<Op11> { public static int Count => 11; }
 
     /// <summary>
     /// 12 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op12 : IOpCount { public static int Count => 12; }
+    public struct Op12 : IOpCount<Op12> { public static int Count => 12; }
 
     /// <summary>
     /// 13 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op13 : IOpCount { public static int Count => 13; }
+    public struct Op13 : IOpCount<Op13> { public static int Count => 13; }
 
     /// <summary>
     /// 14 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op14 : IOpCount { public static int Count => 14; }
+    public struct Op14 : IOpCount<Op14> { public static int Count => 14; }
 
     /// <summary>
     /// 15 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op15 : IOpCount { public static int Count => 15; }
+    public struct Op15 : IOpCount<Op15> { public static int Count => 15; }
 
-    public struct Op16 : IOpCount
+    public struct Op16 : IOpCount<Op16>
     {
         const int Size = 16;
         public static int Count => Size;
@@ -352,24 +349,24 @@ internal static partial class EvmInstructions
     /// 17 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op17 : IOpCount { public static int Count => 17; }
+    public struct Op17 : IOpCount<Op17> { public static int Count => 17; }
 
     /// <summary>
     /// 18 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op18 : IOpCount { public static int Count => 18; }
+    public struct Op18 : IOpCount<Op18> { public static int Count => 18; }
 
     /// <summary>
     /// 19 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op19 : IOpCount { public static int Count => 19; }
+    public struct Op19 : IOpCount<Op19> { public static int Count => 19; }
 
     /// <summary>
     /// 20 item operations.
     /// </summary>
-    public struct Op20 : IOpCount
+    public struct Op20 : IOpCount<Op20>
     {
         const int Size = 20;
         public static int Count => Size;
@@ -400,72 +397,72 @@ internal static partial class EvmInstructions
     /// 21 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op21 : IOpCount { public static int Count => 21; }
+    public struct Op21 : IOpCount<Op21> { public static int Count => 21; }
 
     /// <summary>
     /// 22 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op22 : IOpCount { public static int Count => 22; }
+    public struct Op22 : IOpCount<Op22> { public static int Count => 22; }
 
     /// <summary>
     /// 23 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op23 : IOpCount { public static int Count => 23; }
+    public struct Op23 : IOpCount<Op23> { public static int Count => 23; }
 
     /// <summary>
     /// 24 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op24 : IOpCount { public static int Count => 24; }
+    public struct Op24 : IOpCount<Op24> { public static int Count => 24; }
 
     /// <summary>
     /// 25 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op25 : IOpCount { public static int Count => 25; }
+    public struct Op25 : IOpCount<Op25> { public static int Count => 25; }
 
     /// <summary>
     /// 26 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op26 : IOpCount { public static int Count => 26; }
+    public struct Op26 : IOpCount<Op26> { public static int Count => 26; }
 
     /// <summary>
     /// 27 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op27 : IOpCount { public static int Count => 27; }
+    public struct Op27 : IOpCount<Op27> { public static int Count => 27; }
 
     /// <summary>
     /// 28 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op28 : IOpCount { public static int Count => 28; }
+    public struct Op28 : IOpCount<Op28> { public static int Count => 28; }
 
     /// <summary>
     /// 29 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op29 : IOpCount { public static int Count => 29; }
+    public struct Op29 : IOpCount<Op29> { public static int Count => 29; }
 
     /// <summary>
     /// 30 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op30 : IOpCount { public static int Count => 30; }
+    public struct Op30 : IOpCount<Op30> { public static int Count => 30; }
 
     /// <summary>
     /// 31 item operations.
     /// Uses the default implementation for pushing data.
     /// </summary>
-    public struct Op31 : IOpCount { public static int Count => 31; }
+    public struct Op31 : IOpCount<Op31> { public static int Count => 31; }
 
     /// <summary>
     /// 32 item operations.
     /// </summary>
-    public struct Op32 : IOpCount
+    public struct Op32 : IOpCount<Op32>
     {
         const int Size = 32;
         public static int Count => Size;
@@ -525,11 +522,11 @@ internal static partial class EvmInstructions
     public static EvmExceptionType InstructionPush<TGasPolicy, TOpCount, TTracingInst>(VirtualMachine<TGasPolicy> vm,
         ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
-        where TOpCount : IOpCount
+        where TOpCount : struct, IOpCount<TOpCount>
         where TTracingInst : struct, IFlag
     {
         // Deduct a very low gas cost for the push operation.
-        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, GetInstruction<TOpCount>(Instruction.PUSH1));
+        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, TOpCount.GetInstruction(Instruction.PUSH1));
         // Retrieve the code segment containing immediate data.
         ReadOnlySpan<byte> code = vm.EvmState.Env.CodeInfo.CodeSpan;
         // Use the push method defined by the specific push operation.
@@ -554,10 +551,10 @@ internal static partial class EvmInstructions
     public static EvmExceptionType InstructionDup<TGasPolicy, TOpCount, TTracingInst>(VirtualMachine<TGasPolicy> vm,
         ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
-        where TOpCount : IOpCount
+        where TOpCount : struct, IOpCount<TOpCount>
         where TTracingInst : struct, IFlag
     {
-        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, GetInstruction<TOpCount>(Instruction.DUP1));
+        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, TOpCount.GetInstruction(Instruction.DUP1));
 
         return stack.Dup<TTracingInst>(TOpCount.Count);
     }
@@ -577,10 +574,10 @@ internal static partial class EvmInstructions
     public static EvmExceptionType InstructionSwap<TGasPolicy, TOpCount, TTracingInst>(VirtualMachine<TGasPolicy> vm,
         ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
-        where TOpCount : IOpCount
+        where TOpCount : struct, IOpCount<TOpCount>
         where TTracingInst : struct, IFlag
     {
-        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, GetInstruction<TOpCount>(Instruction.SWAP1));
+        TGasPolicy.ConsumeGas(ref gasState, GasCostOf.VeryLow, TOpCount.GetInstruction(Instruction.SWAP1));
         // Swap the top element with the (n+1)th element; ensure adequate stack depth.
         return stack.Swap<TTracingInst>(TOpCount.Count + 1);
     }
@@ -604,7 +601,7 @@ internal static partial class EvmInstructions
     public static EvmExceptionType InstructionLog<TGasPolicy, TOpCount>(VirtualMachine<TGasPolicy> vm,
         ref EvmStack stack, ref GasState<TGasPolicy> gasState, ref int programCounter)
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
-        where TOpCount : struct, IOpCount
+        where TOpCount : struct, IOpCount<TOpCount>
     {
         EvmState vmState = vm.EvmState;
         // Logging is not permitted in static call contexts.
@@ -617,12 +614,12 @@ internal static partial class EvmInstructions
         long topicsCount = TOpCount.Count;
 
         // Ensure that the memory expansion for the log data is accounted for.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vmState, ref gasState, in position, length,
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in position, length,
                 Instruction.LOG0 + (byte)topicsCount))
             goto OutOfGas;
 
         // Deduct gas for the log entry itself, including per-topic and per-byte data costs.
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState,
+        if (!EvmCalculations.UpdateGas(ref gasState,
                 GasCostOf.Log + topicsCount * GasCostOf.LogTopic + (long)length * GasCostOf.LogData,
                 Instruction.LOG0 + (byte)topicsCount))
             goto OutOfGas;
@@ -661,4 +658,3 @@ internal static partial class EvmInstructions
         return EvmExceptionType.OutOfGas;
     }
 }
-

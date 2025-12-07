@@ -38,7 +38,7 @@ internal static partial class EvmInstructions
 
         EvmState vmState = vm.EvmState;
         // Charge gas for any required memory expansion.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vmState, ref gasState, in a, b, Instruction.KECCAK256)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in a, b, Instruction.KECCAK256)) ||
             !vmState.Memory.TryLoadSpan(in a, b, out Span<byte> bytes))
         {
             goto OutOfGas;

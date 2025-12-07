@@ -132,7 +132,7 @@ internal static partial class EvmInstructions
         if (!size.IsZero)
         {
             // Update memory cost for expanding memory to accommodate the destination slice.
-            if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in destOffset, size,
+            if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in destOffset, size,
                     Instruction.RETURNDATACOPY))
                 return EvmExceptionType.OutOfGas;
 
@@ -178,7 +178,7 @@ internal static partial class EvmInstructions
             goto BadInstruction;
 
         // Deduct gas required for data loading.
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.DataLoad, Instruction.DATALOAD))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.DataLoad, Instruction.DATALOAD))
             goto OutOfGas;
 
         // Pop the offset from the stack.
@@ -209,7 +209,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.DataLoadN, Instruction.DATALOADN))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.DataLoadN, Instruction.DATALOADN))
             goto OutOfGas;
 
         // Read a 16-bit immediate operand from the code.
@@ -242,7 +242,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.DataSize, Instruction.DATASIZE))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.DataSize, Instruction.DATASIZE))
             goto OutOfGas;
 
         stack.PushUInt32<TTracingInst>((uint)codeInfo.DataSection.Length);
@@ -278,7 +278,7 @@ internal static partial class EvmInstructions
         }
 
         // Calculate memory expansion gas cost and deduct overall gas for data copy.
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState,
+        if (!EvmCalculations.UpdateGas(ref gasState,
                 GasCostOf.DataCopy + GasCostOf.Memory * EvmCalculations.Div32Ceiling(in size, out var outOfGas),
                 Instruction.DATACOPY)
             || outOfGas)
@@ -289,8 +289,7 @@ internal static partial class EvmInstructions
         if (!size.IsZero)
         {
             // Update memory cost for the destination region.
-            if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in memOffset, size,
-                    Instruction.DATACOPY))
+            if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in memOffset, size, Instruction.DATACOPY))
                 goto OutOfGas;
             // Retrieve the slice from the data section with zero padding if necessary.
             ZeroPaddedSpan dataSectionSlice = codeInfo.DataSection.SliceWithZeroPadding(offset, (int)size);
@@ -325,7 +324,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.RJump, Instruction.RJUMP))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.RJump, Instruction.RJUMP))
             goto OutOfGas;
 
         // Read a signed 16-bit offset and adjust the program counter.
@@ -353,7 +352,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.RJumpi, Instruction.RJUMPI))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.RJumpi, Instruction.RJUMPI))
             goto OutOfGas;
 
         // Pop the condition word.
@@ -389,7 +388,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.RJumpv, Instruction.RJUMPV))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.RJumpv, Instruction.RJUMPV))
             goto OutOfGas;
 
         // Pop the table index from the stack.
@@ -433,7 +432,7 @@ internal static partial class EvmInstructions
 
         EofCodeInfo codeInfo = (EofCodeInfo)iCodeInfo;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.Callf, Instruction.CALLF))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.Callf, Instruction.CALLF))
             goto OutOfGas;
 
         ReadOnlySpan<byte> codeSection = codeInfo.CodeSection.Span;
@@ -488,7 +487,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.Retf, Instruction.RETF))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.Retf, Instruction.RETF))
             goto OutOfGas;
 
         // Pop the return state from the return stack.
@@ -519,7 +518,7 @@ internal static partial class EvmInstructions
 
         EofCodeInfo codeInfo = (EofCodeInfo)iCodeInfo;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.Jumpf, Instruction.JUMPF))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.Jumpf, Instruction.JUMPF))
             goto OutOfGas;
 
         // Read the target section index from the code.
@@ -558,7 +557,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.Dupn, Instruction.DUPN))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.Dupn, Instruction.DUPN))
             goto OutOfGas;
 
         // Read the immediate operand.
@@ -590,11 +589,11 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.Swapn, Instruction.SWAPN))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.Swapn, Instruction.SWAPN))
             goto OutOfGas;
 
         // Immediate operand determines the swap index.
-        int n = 1 + (int)codeInfo.CodeSection.Span[programCounter];
+        int n = 1 + codeInfo.CodeSection.Span[programCounter];
         EvmExceptionType result = stack.Swap<TTracingInst>(n + 1);
 
         programCounter += 1;
@@ -621,7 +620,7 @@ internal static partial class EvmInstructions
         if (codeInfo.Version == 0)
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.Swapn, Instruction.EXCHANGE))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.Swapn, Instruction.EXCHANGE))
             goto OutOfGas;
 
         ReadOnlySpan<byte> codeSection = codeInfo.CodeSection.Span;
@@ -672,7 +671,7 @@ internal static partial class EvmInstructions
         ExecutionType currentContext = ExecutionType.EOFCREATE;
 
         // 1. Deduct the creation gas cost.
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.TxCreate, Instruction.EOFCREATE))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.TxCreate, Instruction.EOFCREATE))
             goto OutOfGas;
 
         ReadOnlySpan<byte> codeSection = container.CodeSection.Span;
@@ -689,12 +688,13 @@ internal static partial class EvmInstructions
         }
 
         // 4. Charge for memory expansion for the input data.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in dataOffset, dataSize,
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in dataOffset, dataSize,
                 Instruction.EOFCREATE))
             goto OutOfGas;
 
         // 5. Load the init code (EOF subContainer) from the container using the given index.
-        ReadOnlySpan<byte> initContainer = container.ContainerSection.Span[(Range)container.ContainerSectionOffset(initContainerIndex).Value];
+        ReadOnlySpan<byte> initContainer =
+            container.ContainerSection.Span[container.ContainerSectionOffset(initContainerIndex).Value];
         // EIP-3860: Check that the init code size does not exceed the maximum allowed.
         if (spec.IsEip3860Enabled)
         {
@@ -705,7 +705,7 @@ internal static partial class EvmInstructions
         // 6. Deduct gas for keccak256 hashing of the init code.
         long numberOfWordsInInitCode = EvmCalculations.Div32Ceiling((UInt256)initContainer.Length, out bool outOfGas);
         long hashCost = GasCostOf.Sha3Word * numberOfWordsInInitCode;
-        if (outOfGas || !EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, hashCost, Instruction.EOFCREATE))
+        if (outOfGas || !EvmCalculations.UpdateGas(ref gasState, hashCost, Instruction.EOFCREATE))
             goto OutOfGas;
 
         IWorldState state = vm.WorldState;
@@ -722,7 +722,7 @@ internal static partial class EvmInstructions
         // 9. Determine gas available for the new contract execution, applying the 63/64 rule if enabled.
         var gasAvailable = TGasPolicy.GetRemainingGas(in gasState);
         long callGas = spec.Use63Over64Rule ? gasAvailable - gasAvailable / 64L : gasAvailable;
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, callGas, Instruction.EOFCREATE))
+        if (!EvmCalculations.UpdateGas(ref gasState, callGas, Instruction.EOFCREATE))
             goto OutOfGas;
 
         // 10. Increment the nonce of the sender account.
@@ -770,7 +770,7 @@ internal static partial class EvmInstructions
         state.SubtractFromBalance(env.ExecutingAccount, value, spec);
 
         // Create new code info for the init code.
-        ICodeInfo codeInfo = CodeInfoFactory.CreateCodeInfo(initContainer.ToArray(), spec, ValidationStrategy.ExtractHeader);
+        ICodeInfo codeInfo = CodeInfoFactory.CreateCodeInfo(initContainer.ToArray(), spec);
 
         // 8. Prepare the callData from the caller’s memory slice.
         if (!vm.EvmState.Memory.TryLoad(dataOffset, dataSize, out ReadOnlyMemory<byte> callData))
@@ -796,7 +796,7 @@ internal static partial class EvmInstructions
             isCreateOnPreExistingAccount: accountExists,
             env: in callEnv,
             stateForAccessLists: in vm.EvmState.AccessTracker,
-            in snapshot);
+            snapshot: in snapshot);
 
         return EvmExceptionType.None;
     // Jump forward to be unpredicted by the branch predictor.
@@ -821,7 +821,7 @@ internal static partial class EvmInstructions
         if (!vm.EvmState.ExecutionType.IsAnyCreateEof())
             goto BadInstruction;
 
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.ReturnCode, Instruction.RETURNCODE))
+        if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.ReturnCode, Instruction.RETURNCODE))
             goto OutOfGas;
 
         IReleaseSpec spec = vm.Spec;
@@ -831,13 +831,13 @@ internal static partial class EvmInstructions
         byte sectionIdx = codeInfo.CodeSection.Span[programCounter++];
         // Retrieve the deployment code using the container section offset.
         ReadOnlyMemory<byte> deployCode = codeInfo.ContainerSection[(Range)codeInfo.ContainerSectionOffset(sectionIdx)];
-        EofCodeInfo deployCodeInfo = (EofCodeInfo)CodeInfoFactory.CreateCodeInfo(deployCode, spec, ValidationStrategy.ExtractHeader);
+        EofCodeInfo deployCodeInfo = (EofCodeInfo)CodeInfoFactory.CreateCodeInfo(deployCode, spec);
 
         // Pop memory offset and size for the return data.
         stack.PopUInt256(out UInt256 a);
         stack.PopUInt256(out UInt256 b);
 
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in a, b, Instruction.RETURNCODE))
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in a, b, Instruction.RETURNCODE))
             goto OutOfGas;
 
         int projectedNewSize = (int)b + deployCodeInfo.DataSection.Length;
@@ -959,7 +959,7 @@ internal static partial class EvmInstructions
             goto StaticCallViolation;
         // 4. Charge additional gas if a value is transferred in a standard call.
         if (typeof(TOpEofCall) == typeof(OpEofCall) && !transferValue.IsZero &&
-            !EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.CallValue, TOpEofCall.OpCode))
+            !EvmCalculations.UpdateGas(ref gasState, GasCostOf.CallValue, TOpEofCall.OpCode))
             goto OutOfGas;
 
         // 5. Validate that the targetBytes represent a proper 20-byte address (high 12 bytes must be zero).
@@ -974,7 +974,7 @@ internal static partial class EvmInstructions
             : codeSource;
 
         // 6. Update memory cost for the call data.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in dataOffset, in dataLength,
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in dataOffset, in dataLength,
                 TOpEofCall.OpCode))
             goto OutOfGas;
         // 7. Account access gas: ensure target is warm or charge extra gas for cold access.
@@ -987,7 +987,7 @@ internal static partial class EvmInstructions
         if ((!spec.ClearEmptyAccountWhenTouched && !state.AccountExists(codeSource))
             || (spec.ClearEmptyAccountWhenTouched && transferValue != 0 && state.IsDeadAccount(codeSource)))
         {
-            if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.NewAccount, TOpEofCall.OpCode))
+            if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.NewAccount, TOpEofCall.OpCode))
                 goto OutOfGas;
         }
 
@@ -1032,7 +1032,7 @@ internal static partial class EvmInstructions
         }
 
         // 12. Deduct gas for the call and prepare the call data.
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, callGas, TOpEofCall.OpCode)) ||
+        if (!EvmCalculations.UpdateGas(ref gasState, callGas, TOpEofCall.OpCode)) ||
             !vm.EvmState.Memory.TryLoad(in dataOffset, dataLength, out ReadOnlyMemory<byte> callData))
         {
             goto OutOfGas;
@@ -1063,7 +1063,7 @@ internal static partial class EvmInstructions
             isCreateOnPreExistingAccount: false,
             env: in callEnv,
             stateForAccessLists: in vm.EvmState.AccessTracker,
-            in snapshot);
+            snapshot: in snapshot);
 
         return EvmExceptionType.None;
     // Jump forward to be unpredicted by the branch predictor.

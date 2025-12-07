@@ -138,12 +138,12 @@ internal static partial class EvmInstructions
                            : 0);
 
         // Check gas sufficiency: if outOfGas flag was set during gas division or if gas update fails.
-        if (outOfGas || !EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, gasCost, instruction))
+        if (outOfGas || !EvmCalculations.UpdateGas(ref gasState, gasCost, instruction))
             goto OutOfGas;
 
         // Update memory gas cost based on the required memory expansion for the init code.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in memoryPositionOfInitCode,
-                in initCodeLength, instruction))
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in memoryPositionOfInitCode, in initCodeLength,
+                instruction))
             goto OutOfGas;
 
         // Verify call depth does not exceed the maximum allowed. If exceeded, return early with empty data.
@@ -188,7 +188,7 @@ internal static partial class EvmInstructions
         // Calculate gas available for the contract creation call.
         // Use the 63/64 gas rule if specified in the current EVM specification.
         long callGas = spec.Use63Over64Rule ? gasAvailable - gasAvailable / 64L : gasAvailable;
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, callGas, instruction))
+        if (!EvmCalculations.UpdateGas(ref gasState, callGas, instruction))
             goto OutOfGas;
 
         // Compute the contract address:
@@ -265,7 +265,7 @@ internal static partial class EvmInstructions
             isCreateOnPreExistingAccount: accountExists,
             env: in callEnv,
             stateForAccessLists: in vm.EvmState.AccessTracker,
-            in snapshot);
+            snapshot: in snapshot);
     None:
         return EvmExceptionType.None;
     // Jump forward to be unpredicted by the branch predictor.

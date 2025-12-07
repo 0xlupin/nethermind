@@ -78,12 +78,12 @@ public static class EvmCalculations
             // If the account is cold (and not a precompile), charge the cold access cost.
             if (!spec.IsPrecompile(address) && vmState.AccessTracker.WarmUp(address))
             {
-                result = UpdateGas<TGasPolicy>(ref gasState, GasCostOf.ColdAccountAccess, instruction);
+                result = UpdateGas(ref gasState, GasCostOf.ColdAccountAccess, instruction);
             }
             else if (chargeForWarm)
             {
                 // Otherwise, if warm access should be charged, apply the warm read cost.
-                result = UpdateGas<TGasPolicy>(ref gasState, GasCostOf.WarmStateRead, instruction);
+                result = UpdateGas(ref gasState, GasCostOf.WarmStateRead, instruction);
             }
         }
 
@@ -130,12 +130,12 @@ public static class EvmCalculations
             // If the storage cell is still cold, apply the higher cold access cost and mark it as warm.
             if (accessTracker.WarmUp(in storageCell))
             {
-                result = UpdateGas<TGasPolicy>(ref gasState, GasCostOf.ColdSLoad, instruction);
+                result = UpdateGas(ref gasState, GasCostOf.ColdSLoad, instruction);
             }
             // For SLOAD operations on already warmed-up storage, apply a lower warm-read cost.
             else if (storageAccessType == StorageAccessType.SLOAD)
             {
-                result = UpdateGas<TGasPolicy>(ref gasState, GasCostOf.WarmStateRead, instruction);
+                result = UpdateGas(ref gasState, GasCostOf.WarmStateRead, instruction);
             }
         }
 
@@ -161,7 +161,7 @@ public static class EvmCalculations
         long memoryCost = vmState.Memory.CalculateMemoryCost(in position, length, out bool outOfGas);
         if (memoryCost != 0L)
         {
-            if (!UpdateGas<TGasPolicy>(ref gasState, memoryCost, instruction))
+            if (!UpdateGas(ref gasState, memoryCost, instruction))
             {
                 return false;
             }

@@ -20,6 +20,11 @@ internal static partial class EvmInstructions
     public interface IOpShift
     {
         /// <summary>
+        /// The opcode for this shift operation.
+        /// </summary>
+        static abstract Instruction OpCode { get; }
+
+        /// <summary>
         /// The gas cost for executing a shift operation.
         /// </summary>
         virtual static long GasCost => GasCostOf.VeryLow;
@@ -57,7 +62,7 @@ internal static partial class EvmInstructions
         where TTracingInst : struct, IFlag
     {
         // Deduct gas cost specific to the shift operation.
-        TGasPolicy.ConsumeGas(ref gasState, TOpShift.GasCost, Instruction.SHL);
+        TGasPolicy.ConsumeGas(ref gasState, TOpShift.GasCost, TOpShift.OpCode);
 
         // Pop the shift amount from the stack.
         if (!stack.PopUInt256(out UInt256 a)) goto StackUnderflow;
@@ -145,6 +150,8 @@ internal static partial class EvmInstructions
     /// </summary>
     public struct OpShl : IOpShift
     {
+        public static Instruction OpCode => Instruction.SHL;
+
         /// <summary>
         /// Performs a left shift: shifts <paramref name="b"/> left by the number of bits specified in <paramref name="a"/>.
         /// </summary>
@@ -161,6 +168,8 @@ internal static partial class EvmInstructions
     /// </summary>
     public struct OpShr : IOpShift
     {
+        public static Instruction OpCode => Instruction.SHR;
+
         /// <summary>
         /// Performs a logical right shift: shifts <paramref name="b"/> right by the number of bits specified in <paramref name="a"/>.
         /// </summary>

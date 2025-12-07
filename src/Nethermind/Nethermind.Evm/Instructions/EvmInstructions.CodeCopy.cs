@@ -77,8 +77,7 @@ internal static partial class EvmInstructions
         if (!result.IsZero)
         {
             // Check and update memory expansion cost.
-            if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in a, result,
-                    Instruction.CALLDATACOPY))
+            if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in a, result, Instruction.CALLDATACOPY))
                 goto OutOfGas;
 
             // Obtain the code slice with zero-padding if needed.
@@ -169,8 +168,7 @@ internal static partial class EvmInstructions
         if (!result.IsZero)
         {
             // Update memory cost if the destination region requires expansion.
-            if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in a, result,
-                    Instruction.EXTCODECOPY))
+            if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in a, result, Instruction.EXTCODECOPY))
                 goto OutOfGas;
 
             ICodeInfo codeInfo = vm.CodeInfoRepository
@@ -182,7 +180,7 @@ internal static partial class EvmInstructions
             if (spec.IsEip7907Enabled)
             {
                 uint excessContractSize = (uint)Math.Max(0, externalCode.Length - CodeSizeConstants.MaxCodeSizeEip170);
-                if (excessContractSize > 0 && !ChargeForLargeContractAccess<TGasPolicy>(excessContractSize, address,
+                if (excessContractSize > 0 && !ChargeForLargeContractAccess(excessContractSize, address,
                         in vm.EvmState.AccessTracker, ref gasState, Instruction.EXTCODECOPY))
                     goto OutOfGas;
             }

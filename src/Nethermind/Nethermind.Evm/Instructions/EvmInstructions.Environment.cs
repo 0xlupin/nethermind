@@ -50,6 +50,10 @@ internal static partial class EvmInstructions
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
         /// <summary>
+        /// The opcode for this environment operation.
+        /// </summary>
+        static abstract Instruction OpCode { get; }
+        /// <summary>
         /// The gas cost for the operation.
         /// </summary>
         virtual static long GasCost => GasCostOf.Base;
@@ -364,7 +368,7 @@ internal static partial class EvmInstructions
         where TOpEnv : struct, IOpEnv32Bytes<TGasPolicy>
         where TTracingInst : struct, IFlag
     {
-        TGasPolicy.ConsumeGas(ref gasState, TOpEnv.GasCost, Instruction.ORIGIN);
+        TGasPolicy.ConsumeGas(ref gasState, TOpEnv.GasCost, TOpEnv.OpCode);
 
         ref readonly ValueHash256 result = ref TOpEnv.Operation(vm);
 
@@ -530,6 +534,7 @@ internal static partial class EvmInstructions
     public struct OpOrigin<TGasPolicy> : IOpEnv32Bytes<TGasPolicy>
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
+        public static Instruction OpCode => Instruction.ORIGIN;
         public static ref readonly ValueHash256 Operation(VirtualMachine<TGasPolicy> vm)
             => ref vm.TxExecutionContext.Origin;
     }
@@ -552,6 +557,7 @@ internal static partial class EvmInstructions
     public struct OpChainId<TGasPolicy> : IOpEnv32Bytes<TGasPolicy>
         where TGasPolicy : struct, IGasPolicy<TGasPolicy>
     {
+        public static Instruction OpCode => Instruction.CHAINID;
         public static ref readonly ValueHash256 Operation(VirtualMachine<TGasPolicy> vm)
             => ref vm.ChainId;
     }

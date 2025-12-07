@@ -158,7 +158,8 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update the memory cost for a 32-byte store; if insufficient gas, signal out-of-gas.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasAvailable, in result, in BigInt32)) goto OutOfGas||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in VirtualMachine<TGasPolicy>.BigInt32,
+                Instruction.MSTORE)) ||
         !vmState.Memory.TrySaveWord(in result, bytes))
         {
             goto OutOfGas;
@@ -206,7 +207,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update the memory cost for a single-byte extension; if insufficient, signal out-of-gas.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasAvailable, in result, in UInt256.One)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in UInt256.One, Instruction.MSTORE8)) ||
         !vmState.Memory.TrySaveByte(in result, data))
         {
             goto OutOfGas;
@@ -250,7 +251,8 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update memory cost for a 32-byte load.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasAvailable, in result, in BigInt32)) goto OutOfGas ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result,
+                in VirtualMachine<TGasPolicy>.BigInt32, Instruction.MLOAD)) ||
         !vmState.Memory.TryLoadSpan(in result, out Span<byte> bytes))
         {
             goto OutOfGas;
@@ -297,15 +299,17 @@ internal static partial class EvmInstructions
         if (!stack.PopUInt256(out UInt256 a) || !stack.PopUInt256(out UInt256 b) || !stack.PopUInt256(out UInt256 c)) goto StackUnderflow;
 
         // Calculate additional gas cost based on the length (using a division rounding-up method) and deduct the total cost.
-        var copyGasCost = GasCostOf.VeryLow + GasCostOf.VeryLow * EvmCalculations.Div32Ceiling(c, out var outOfGas);
+        TGasPolicy.ConsumeGas(ref gasState,
+            GasCostOf.VeryLow + GasCostOf.VeryLow * EvmCalculations.Div32Ceiling(c, out var outOfGas),
+            Instruction.MCOPY);
         if (outOfGas) goto OutOfGas;
 
-        TGasPolicy.ConsumeGas(ref gasState, copyGasCost, Instruction.MCOPY);
 
         EvmState vmState = vm.EvmState;
 
         // Update memory cost for the destination area (largest offset among source and destination) over the specified length.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vmState, ref gasState, UInt256.Max(b, a), c, Instruction.MCOPY)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, UInt256.Max(b, a), c,
+                Instruction.MCOPY)) ||
             !vmState.Memory.TryLoadSpan(in b, c, out Span<byte> bytes))
         {
             goto OutOfGas;
@@ -361,7 +365,7 @@ internal static partial class EvmInstructions
         IReleaseSpec spec = vm.Spec;
 
         // For legacy metering: ensure there is enough gas for the SSTORE reset cost before reading storage.
-        if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, spec.GetSStoreResetCost(), Instruction.SSTORE))
+        if (!EvmCalculations.UpdateGas(ref gasState, spec.GetSStoreResetCost(), Instruction.SSTORE))
             goto OutOfGas;
 
         // Pop the key and then the new value for storage; signal underflow if unavailable.
@@ -376,7 +380,7 @@ internal static partial class EvmInstructions
         StorageCell storageCell = new(vmState.Env.ExecutingAccount, in result);
 
         // Charge gas based on whether this is a cold or warm storage access.
-        if (!EvmCalculations.ChargeStorageAccessGas<TGasPolicy>(ref gasState, vm, in storageCell,
+        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell,
                 StorageAccessType.SSTORE, spec, Instruction.SSTORE))
             goto OutOfGas;
 
@@ -403,7 +407,7 @@ internal static partial class EvmInstructions
         // When setting a non-zero value over an existing zero, apply the difference in gas costs.
         else if (currentIsZero)
         {
-            if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.SSet - GasCostOf.SReset,
+            if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.SSet - GasCostOf.SReset,
                     Instruction.SSTORE))
                 goto OutOfGas;
         }
@@ -487,7 +491,7 @@ internal static partial class EvmInstructions
         StorageCell storageCell = new(vmState.Env.ExecutingAccount, in result);
 
         // Charge gas based on whether this is a cold or warm storage access.
-        if (!EvmCalculations.ChargeStorageAccessGas<TGasPolicy>(ref gasState, vm, in storageCell,
+        if (!EvmCalculations.ChargeStorageAccessGas(ref gasState, vm, in storageCell,
                 StorageAccessType.SSTORE, spec, Instruction.SSTORE))
             goto OutOfGas;
 
@@ -503,7 +507,7 @@ internal static partial class EvmInstructions
 
         if (newSameAsCurrent)
         {
-            if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, spec.GetNetMeteredSStoreCost(),
+            if (!EvmCalculations.UpdateGas(ref gasState, spec.GetNetMeteredSStoreCost(),
                     Instruction.SSTORE))
                 goto OutOfGas;
         }
@@ -518,12 +522,12 @@ internal static partial class EvmInstructions
             {
                 if (currentIsZero)
                 {
-                    if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.SSet, Instruction.SSTORE))
+                    if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.SSet, Instruction.SSTORE))
                         goto OutOfGas;
                 }
                 else
                 {
-                    if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, spec.GetSStoreResetCost(),
+                    if (!EvmCalculations.UpdateGas(ref gasState, spec.GetSStoreResetCost(),
                             Instruction.SSTORE))
                         goto OutOfGas;
 
@@ -538,7 +542,7 @@ internal static partial class EvmInstructions
             else
             {
                 long netMeteredStoreCost = spec.GetNetMeteredSStoreCost();
-                if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, netMeteredStoreCost, Instruction.SSTORE))
+                if (!EvmCalculations.UpdateGas(ref gasState, netMeteredStoreCost, Instruction.SSTORE))
                     goto OutOfGas;
 
                 if (!originalIsZero)

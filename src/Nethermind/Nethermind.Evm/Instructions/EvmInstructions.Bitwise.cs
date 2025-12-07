@@ -19,6 +19,10 @@ internal static partial class EvmInstructions
     public interface IOpBitwise
     {
         /// <summary>
+        /// The opcode for this bitwise operation.
+        /// </summary>
+        static abstract Instruction OpCode { get; }
+        /// <summary>
         /// The gas cost for executing the bitwise operation.
         /// </summary>
         static virtual long GasCost => GasCostOf.VeryLow;
@@ -49,7 +53,7 @@ internal static partial class EvmInstructions
         where TOpBitwise : struct, IOpBitwise
     {
         // Deduct the operation's gas cost.
-        TGasPolicy.ConsumeGas(ref gasState, TOpBitwise.GasCost, Instruction.AND);
+        TGasPolicy.ConsumeGas(ref gasState, TOpBitwise.GasCost, TOpBitwise.OpCode);
 
         // Pop the first operand from the stack by reference to minimize copying.
         ref byte bytesRef = ref stack.PopBytesByRef();
@@ -76,6 +80,7 @@ internal static partial class EvmInstructions
     /// </summary>
     public struct OpBitwiseAnd : IOpBitwise
     {
+        public static Instruction OpCode => Instruction.AND;
         public static Word Operation(in Word a, in Word b) => Vector256.BitwiseAnd(a, b);
     }
 
@@ -84,6 +89,7 @@ internal static partial class EvmInstructions
     /// </summary>
     public struct OpBitwiseOr : IOpBitwise
     {
+        public static Instruction OpCode => Instruction.OR;
         public static Word Operation(in Word a, in Word b) => Vector256.BitwiseOr(a, b);
     }
 
@@ -92,6 +98,7 @@ internal static partial class EvmInstructions
     /// </summary>
     public struct OpBitwiseXor : IOpBitwise
     {
+        public static Instruction OpCode => Instruction.XOR;
         public static Word Operation(in Word a, in Word b) => Vector256.Xor(a, b);
     }
 
@@ -102,6 +109,7 @@ internal static partial class EvmInstructions
     /// </summary>
     public struct OpBitwiseEq : IOpBitwise
     {
+        public static Instruction OpCode => Instruction.EQ;
         // Precomputed vector used as a marker for equality (only the last byte is set to 1).
         public static Word One = Vector256.Create(
             (byte)

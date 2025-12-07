@@ -186,7 +186,7 @@ internal static partial class EvmInstructions
         }
 
         // Ensure sufficient gas for any required memory expansion.
-        if (!EvmCalculations.UpdateMemoryCost<TGasPolicy>(vm.EvmState, ref gasState, in position, in length, Instruction.REVERT)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in position, in length, Instruction.REVERT)) ||
             !vm.EvmState.Memory.TryLoad(in position, in length, out ReadOnlyMemory<byte> returnData))
         {
             goto OutOfGas;
@@ -252,7 +252,7 @@ internal static partial class EvmInstructions
         // For certain specs, charge gas if transferring to a dead account.
         if (spec.ClearEmptyAccountWhenTouched && !result.IsZero && state.IsDeadAccount(inheritor))
         {
-            if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.NewAccount, Instruction.SELFDESTRUCT))
+            if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.NewAccount, Instruction.SELFDESTRUCT))
                 goto OutOfGas;
         }
 
@@ -260,7 +260,7 @@ internal static partial class EvmInstructions
         bool inheritorAccountExists = state.AccountExists(inheritor);
         if (!spec.ClearEmptyAccountWhenTouched && !inheritorAccountExists && spec.UseShanghaiDDosProtection)
         {
-            if (!EvmCalculations.UpdateGas<TGasPolicy>(ref gasState, GasCostOf.NewAccount, Instruction.SELFDESTRUCT))
+            if (!EvmCalculations.UpdateGas(ref gasState, GasCostOf.NewAccount, Instruction.SELFDESTRUCT))
                 goto OutOfGas;
         }
 
