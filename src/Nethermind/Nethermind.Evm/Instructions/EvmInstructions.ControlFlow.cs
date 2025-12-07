@@ -186,7 +186,7 @@ internal static partial class EvmInstructions
         }
 
         // Ensure sufficient gas for any required memory expansion.
-        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in position, in length, Instruction.REVERT)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in position, in length, Instruction.REVERT) ||
             !vm.EvmState.Memory.TryLoad(in position, in length, out ReadOnlyMemory<byte> returnData))
         {
             goto OutOfGas;

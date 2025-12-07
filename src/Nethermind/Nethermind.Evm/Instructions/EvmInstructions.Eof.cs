@@ -1004,7 +1004,7 @@ internal static partial class EvmInstructions
         }
 
         // 12. Deduct gas for the call and prepare the call data.
-        if (!EvmCalculations.UpdateGas(ref gasState, callGas, TOpEofCall.OpCode)) ||
+        if (!EvmCalculations.UpdateGas(ref gasState, callGas, TOpEofCall.OpCode) ||
             !vm.EvmState.Memory.TryLoad(in dataOffset, dataLength, out ReadOnlyMemory<byte> callData))
         {
             goto OutOfGas;

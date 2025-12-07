@@ -155,7 +155,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update the memory cost for a 32-byte store; if insufficient gas, signal out-of-gas.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in VirtualMachine<TGasPolicy>.BigInt32, Instruction.MSTORE)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in BigInt32, Instruction.MSTORE) ||
         !vmState.Memory.TrySaveWord(in result, bytes))
         {
             goto OutOfGas;
@@ -202,7 +202,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update the memory cost for a single-byte extension; if insufficient, signal out-of-gas.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in UInt256.One, Instruction.MSTORE8)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in UInt256.One, Instruction.MSTORE8) ||
         !vmState.Memory.TrySaveByte(in result, data))
         {
             goto OutOfGas;
@@ -245,7 +245,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update memory cost for a 32-byte load.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in VirtualMachine<TGasPolicy>.BigInt32, Instruction.MLOAD)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, in result, in BigInt32, Instruction.MLOAD) ||
         !vmState.Memory.TryLoadSpan(in result, out Span<byte> bytes))
         {
             goto OutOfGas;
@@ -297,7 +297,7 @@ internal static partial class EvmInstructions
         EvmState vmState = vm.EvmState;
 
         // Update memory cost for the destination area (largest offset among source and destination) over the specified length.
-        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, UInt256.Max(b, a), c, Instruction.MCOPY)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vmState, ref gasState, UInt256.Max(b, a), c, Instruction.MCOPY) ||
             !vmState.Memory.TryLoadSpan(in b, c, out Span<byte> bytes))
         {
             goto OutOfGas;

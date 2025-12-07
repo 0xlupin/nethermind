@@ -355,7 +355,7 @@ internal static partial class EvmInstructions
             goto StackUnderflow;
 
         // Update the memory cost for the region being returned.
-        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in position, in length, Instruction.RETURN)) ||
+        if (!EvmCalculations.UpdateMemoryCost(vm.EvmState, ref gasState, in position, in length, Instruction.RETURN) ||
             !vm.EvmState.Memory.TryLoad(in position, in length, out ReadOnlyMemory<byte> returnData))
         {
             goto OutOfGas;
