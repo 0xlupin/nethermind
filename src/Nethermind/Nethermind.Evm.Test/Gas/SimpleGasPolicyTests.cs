@@ -13,7 +13,7 @@ public class SimpleGasPolicyTests
     [Test]
     public void SimpleGasPolicy_ConsumeGas_ReducesRemainingGas()
     {
-        var gasState = new GasState(1000000);
+        var gasState = new GasState<SimpleGasPolicy>(1000000);
 
         SimpleGasPolicy.ConsumeGas(ref gasState, 3, Instruction.ADD);
 
@@ -23,8 +23,8 @@ public class SimpleGasPolicyTests
     [Test]
     public void SimpleGasPolicy_ConsumeGas_IgnoresInstruction()
     {
-        var gasState1 = new GasState(1000000);
-        var gasState2 = new GasState(1000000);
+        var gasState1 = new GasState<SimpleGasPolicy>(1000000);
+        var gasState2 = new GasState<SimpleGasPolicy>(1000000);
 
         SimpleGasPolicy.ConsumeGas(ref gasState1, 100, Instruction.SSTORE);
         SimpleGasPolicy.ConsumeGas(ref gasState2, 100, Instruction.ADD);
