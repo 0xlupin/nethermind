@@ -37,7 +37,7 @@ using Int256;
 /// Static fields shared across all VirtualMachine generic instantiations.
 /// Moved out of the generic class to avoid duplication per type parameter.
 /// </summary>
-internal static class VirtualMachineStatics
+public static class VirtualMachineStatics
 {
     public const int MaxCallDepth = Eof1.RETURN_STACK_MAX_HEIGHT;
 
