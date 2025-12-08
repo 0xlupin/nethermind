@@ -672,7 +672,7 @@ internal static partial class EvmInstructions
             goto OutOfGas;
 
         // 5. Load the init code (EOF subContainer) from the container using the given index.
-        ReadOnlySpan<byte> initContainer = container.ContainerSection.Span[container.ContainerSectionOffset(initContainerIndex).Value];
+        ReadOnlySpan<byte> initContainer = container.ContainerSection.Span[(Range)container.ContainerSectionOffset(initContainerIndex)!.Value];
         // EIP-3860: Check that the init code size does not exceed the maximum allowed.
         if (spec.IsEip3860Enabled)
         {
